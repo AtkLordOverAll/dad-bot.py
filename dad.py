@@ -57,7 +57,12 @@ async def on_message(message):
     if message.author.bot:
         return
 
-    cleanMsg = re.sub("(:[^\s]*:)|[~_*`]", "", message.content.lower()) # regex removes :emotes: and *~_` characters
+    pattern = re.compile(u"(<:[^\s]*>)|[~_*`]|[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF]", flags=re.UNICODE)
+
+    cleanMsg = re.sub(pattern, "", message.content.lower()) # regex removes :emotes: and *~_` characters
+
+    await bot.send_message(message.channel, cleanMsg)
+    return
 
     if cleanMsg in CTResponses.keys():
         await bot.send_message(message.channel, CTResponses[message.content])
@@ -121,6 +126,12 @@ async def setGame(ctx, gameName:str = None):
     config["game"] = gameName
     saveJSON(config, "config")
     await bot.say("All sorted. That better?")
+
+def dadJoke(phrase):
+    wList = phrase.split(" ")
+    for w in wList:
+        w = w[0].upper() + w[1:]
+    return "Hi {}, I'm Dad.".format(wList.join(" "))
 
 def manualPermCheck(user, level = 1):
     """
