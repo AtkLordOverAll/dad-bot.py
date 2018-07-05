@@ -8,7 +8,6 @@ from plugins import pcheck
 from plugins.pyson import Pyson
 
 # Load globals
-
 config = Pyson("./config")
 if config.data == {}:
     print("Please come back when you've set yourself up a config file")
@@ -36,6 +35,9 @@ async def on_command_error(error, ctx):
         await send_cmd_help(ctx)
     elif isinstance(error, commands.CommandInvokeError):
         print("Exception in command '{}', {}".format(ctx.command.qualified_name, error.original))
+        prettyError = discord.Embed(title="You made a boo-boo!", description=error.original.__traceback__, color=0xff0000)
+        prettyError.set_footer(text="Now go think about what you've done")
+        await bot.send_message(channel, embed = prettyError)
         traceback.print_tb(error.original.__traceback__)
     elif isinstance(error, commands.CheckFailure):
         await bot.send_message(channel, "Insufficient permissions for this command. Sorry son.")
