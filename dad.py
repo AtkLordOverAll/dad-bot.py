@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import json
 import re
+import traceback
 
 from plugins import pcheck
 
@@ -14,6 +15,8 @@ with open("./data/cleanTextSuggestions.json") as f:
     CTSuggestions = json.load(f)
 with open("./data/permLevels.json") as f:
     perms = json.load(f)
+
+cleaner = re.compile(u"(<:[^\s]*>)|[~_*`]|[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF]", flags=re.UNICODE)
 # End globals
 
 bot = commands.Bot(command_prefix = config["prefix"], description = "The dadliest dad there is.")
@@ -57,9 +60,7 @@ async def on_message(message):
     if message.author.bot:
         return
 
-    pattern = re.compile(u"(<:[^\s]*>)|[~_*`]|[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF]", flags=re.UNICODE)
-
-    cleanMsg = re.sub(pattern, "", message.content.lower()) # regex removes :emotes: and *~_` characters
+    cleanMsg = re.sub(cleaner, "", message.content.lower()) # regex removes :emotes: and *~_` characters
 
     if cleanMsg in CTResponses.keys():
         await bot.send_message(message.channel, CTResponses[message.content])
@@ -82,6 +83,25 @@ async def on_message(message):
 @bot.command(pass_context = True)
 async def noticeMe(ctx):
     await bot.say("Hi {}".format(ctx.message.author.name))
+
+@pcheck.t1()
+@bot.command(pass_context = True)
+async def aliasSuggest(ctx, trigger, response):
+    if not CTSuggestions[ctx.message.author.id]:
+        CTSuggestions[ctx.message.author.id] = {}
+    CTSuggestions[ctx.message.author.id][trigger] = response
+    await bot.say("Suggestion received for moderator review.")
+
+@pcheck.mods()
+@bot.command(pass_context = True)
+async def alias(ctx, trigger, response):
+    trigger = re.sub(cleaner, "", trigger)
+    if CTResponses[trigger]:
+        await bot.say("Alias for that phrase already exists I'm afraid")
+    else:
+        CTResponses[trigger] = response
+        await bot.say("New hip and trendy phrase acquired. Watch out kiddos!")
+    await ctx.message.delete()
 
 @bot.command(pass_context = True)
 async def updatePerms(ctx, member: discord.Member = None):
