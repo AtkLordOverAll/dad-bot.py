@@ -91,17 +91,18 @@ async def aliasSuggest(ctx, trigger, response):
         CTSuggestions[ctx.message.author.id] = {}
     CTSuggestions[ctx.message.author.id][trigger] = response
     await bot.say("Suggestion received for moderator review.")
+    await bot.delete_message(ctx.message)
 
 @pcheck.mods()
 @bot.command(pass_context = True)
 async def alias(ctx, trigger, response):
     trigger = re.sub(cleaner, "", trigger)
-    if CTResponses[trigger]:
+    if trigger in CTResponses.keys():
         await bot.say("Alias for that phrase already exists I'm afraid")
     else:
         CTResponses[trigger] = response
         await bot.say("New hip and trendy phrase acquired. Watch out kiddos!")
-    await ctx.message.delete()
+    await bot.delete_message(ctx.message)
 
 @bot.command(pass_context = True)
 async def updatePerms(ctx, member: discord.Member = None):
@@ -125,12 +126,11 @@ async def joinUs(ctx):
 async def log(ctx):
     print(ctx.message.content)
 
-@pcheck.devs()
+@pcheck.owner()
 @bot.command(pass_context = True)
 async def shutdown(ctx):
     await bot.say("Goodbye 👋")
     await bot.logout()
-    quit()
 
 @pcheck.owner()
 @bot.command(pass_context = True)
