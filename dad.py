@@ -61,21 +61,18 @@ async def on_message(message):
 
     cleanMsg = re.sub(pattern, "", message.content.lower()) # regex removes :emotes: and *~_` characters
 
-    await bot.send_message(message.channel, cleanMsg)
-    return
-
     if cleanMsg in CTResponses.keys():
         await bot.send_message(message.channel, CTResponses[message.content])
         return
 
-    if cleanMsg.startswith(("i'm ", "im ", "i am ", "i m ")):
-        # dad joke (snip 3)
+    if cleanMsg.startswith("im "):
+        await bot.send_message(message.channel, dadJoke(cleanMsg[3:]))
         return
     elif cleanMsg.startswith(("i m ", "i'm ")):
-        # dad joke (snip 4)
+        await bot.send_message(message.channel, dadJoke(cleanMsg[4:]))
         return
     elif cleanMsg.startswith("i am "):
-        # dad joke (snip 5)
+        await bot.send_message(message.channel, dadJoke(cleanMsg[5:]))
         return
     # End plain text functionality
 
@@ -129,9 +126,13 @@ async def setGame(ctx, gameName:str = None):
 
 def dadJoke(phrase):
     wList = phrase.split(" ")
-    for w in wList:
-        w = w[0].upper() + w[1:]
-    return "Hi {}, I'm Dad.".format(wList.join(" "))
+    for n in range(len(wList)):
+        wList[n] = wList[n][0].upper() + wList[n][1:]
+        if wList[n].endswith((",", ".", "?", "!", "&")):
+            wList[n] = wList[n][:-1]
+            wList = wList[:n+1]
+            break
+    return "Hi {}, I'm Dad.".format(" ".join(wList))
 
 def manualPermCheck(user, level = 1):
     """
