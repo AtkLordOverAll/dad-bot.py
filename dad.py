@@ -5,21 +5,23 @@ import re
 import traceback
 
 from plugins import pcheck
+from plugins.pyson import Pyson
 
 # Load globals
-with open("config.json") as f:
-    config = json.load(f)
-with open("./data/cleanTextResponses.json") as f:
-    CTResponses = json.load(f)
-with open("./data/cleanTextSuggestions.json") as f:
-    CTSuggestions = json.load(f)
-with open("./data/permLevels.json") as f:
-    perms = json.load(f)
+
+config = Pyson("./config")
+if config.data == {}:
+    print("Please come back when you've set yourself up a config file")
+    quit()
+
+CTResponses = Pyson("./data/cleanTextResponses")
+CTSuggestions = Pyson("./data/cleanTextSuggestions")
+perms = Pyson("./data/permLevels")
 
 cleaner = re.compile(u"(<:[^\s]*>)|[~_*`]|[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF]", flags=re.UNICODE)
 # End globals
 
-bot = commands.Bot(command_prefix = config["prefix"], description = "The dadliest dad there is.")
+bot = commands.Bot(command_prefix = config.data["prefix"], description = "The dadliest dad there is.")
 
 @bot.event
 async def on_ready():
@@ -62,8 +64,8 @@ async def on_message(message):
 
     cleanMsg = re.sub(cleaner, "", message.content.lower()) # regex removes :emotes: and *~_` characters
 
-    if cleanMsg in CTResponses.keys():
-        await bot.send_message(message.channel, CTResponses[message.content])
+    if cleanMsg in CTResponses.data.keys():
+        await bot.send_message(message.channel, CTResponses.data[message.content])
         return
 
     if cleanMsg.startswith("im "):
@@ -87,9 +89,9 @@ async def noticeMe(ctx):
 @pcheck.t1()
 @bot.command(pass_context = True)
 async def aliasSuggest(ctx, trigger, response):
-    if not CTSuggestions[ctx.message.author.id]:
-        CTSuggestions[ctx.message.author.id] = {}
-    CTSuggestions[ctx.message.author.id][trigger] = response
+    if not CTSuggestions.data[ctx.message.author.id]:
+        CTSuggestions.data[ctx.message.author.id] = {}
+    CTSuggestions.data[ctx.message.author.id][trigger] = response
     await bot.say("Suggestion received for moderator review.")
     await bot.delete_message(ctx.message)
 
@@ -97,10 +99,10 @@ async def aliasSuggest(ctx, trigger, response):
 @bot.command(pass_context = True)
 async def alias(ctx, trigger, response):
     trigger = re.sub(cleaner, "", trigger)
-    if trigger in CTResponses.keys():
+    if trigger in CTResponses.data.keys():
         await bot.say("Alias for that phrase already exists I'm afraid")
     else:
-        CTResponses[trigger] = response
+        CTResponses.data[trigger] = response
         await bot.say("New hip and trendy phrase acquired. Watch out kiddos!")
     await bot.delete_message(ctx.message)
 
@@ -112,7 +114,8 @@ async def updatePerms(ctx, member: discord.Member = None):
         permIndividualUpdate(member)
         await bot.say("Permission levels updated for {}. Hope that helps.".format(member.name))
     else:
-        permFullUpdate(ctx.message.server)
+        perms.data = permFullUpdate(ctx.message.server)
+        perms.save(True)
         await bot.say("Permission levels updated for everyone. Glad to be of service.")
 
 @pcheck.devs()
@@ -140,8 +143,8 @@ async def setGame(ctx, gameName:str = None):
     else:
         await bot.change_presence(game = None)
 
-    config["game"] = gameName
-    saveJSON(config, "config")
+    config.data["game"] = gameName
+    config.save()
     await bot.say("All sorted. That better?")
 
 def dadJoke(phrase):
@@ -166,9 +169,9 @@ def manualPermCheck(user, level = 1):
     levels = ["tier1", "tier2", "tier3", "mods", "devs", "owner"]
 
     if level == 5:
-        if config["ownerID"] == user.id:
+        if config.data["ownerID"] == user.id:
             return True
-    elif config[levels[level]] in user.roles:
+    elif config.data[levels[level]] in user.roles:
         return True
     else:
         try:
@@ -179,28 +182,28 @@ def manualPermCheck(user, level = 1):
 def permLevel(member):
     if member.bot:
         return 0
-    elif config["ownerID"] == member.id:
+    elif config.data["ownerID"] == member.id:
         return 6
 
     holding = 0
 
     for role in member.roles:
-        if role.id == config["devs"]:
+        if role.id == config.data["devs"]:
             return 5
-        elif role.id == config["mods"] and holding < 4:
+        elif role.id == config.data["mods"] and holding < 4:
             holding = 4
-        elif role.id == config["tier3"] and holding < 3:
+        elif role.id == config.data["tier3"] and holding < 3:
             holding = 3
-        elif role.id == config["tier2"] and holding < 2:
+        elif role.id == config.data["tier2"] and holding < 2:
             holding = 2
-        elif role.id == config["tier1"] and holding < 1:
+        elif role.id == config.data["tier1"] and holding < 1:
             holding = 1
 
     return holding
 
 def permIndividualUpdate(member):
-    perms[member.id] = permLevel(member)
-    saveJSON(perms, "./data/permLevels", True)
+    perms.data[member.id] = permLevel(member)
+    perms.save(True)
 
 def permFullUpdate(server):
     notPermLevels = {}
@@ -208,18 +211,6 @@ def permFullUpdate(server):
     for member in server.members:
         notPermLevels[member.id] = permLevel(member)
 
-    saveJSON(notPermLevels, "./data/permLevels", True)
     return notPermLevels
 
-def saveJSON(data, fileName = "data", sort = False):
-    """
-    Procedure
-    Parameters: data (variable to save), fileName (name to give file, without prefix), sort (bool as to whether or not the data should be sorted)
-    Saves a JSON file of given data
-    """
-    if not fileName.endswith(".json"):
-        fileName += ".json"
-    with open(fileName, "w") as outFile:
-        json.dump(data, outFile, sort_keys = sort, indent = 4)
-
-bot.run(config["token"])
+bot.run(config.data["token"])
