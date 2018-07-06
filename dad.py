@@ -90,6 +90,52 @@ async def noticeMe(ctx):
 
 @pcheck.t1()
 @bot.command(pass_context = True)
+async def rgb(ctx, r, g, b):
+    """
+    Describes a colour to the user based on a given RGB value
+
+    Usage: rgb [red value] [green value] [blue value]
+    """
+
+
+    try:
+        if r > 255 or g > 255 or b > 255:
+            await bot.say("Use realistic numbers son. Don't you know your powers of two?")
+            return
+        rgb = (float(r) // 85, float(g) // 85, float(b) // 85)
+    except ValueError:
+        await bot.say("It'd be nice if you used numbers son. Have you been skipping school?")
+        return
+
+    await bot.say("Good question son!")
+    output = "As you can clearly see, "
+
+    if rgb[0] == 0:
+        output += "there isn't a lot of red, "
+    elif rgb[0] == 1:
+        output += "you've got some red in there, "
+    elif rgb[0] >= 2:
+        output += "you've got a healthy dollop of red, "
+
+    if rgb[1] == 0:
+        output += "not much green, "
+    elif rgb[1] == 1:
+        output += "you've got some green, "
+    elif rgb[1] >= 2:
+        output += "a strong dollop of Shrek in the mix, "
+
+    if rgb[2] == 0:
+        output += "and barely any blue to be frank."
+    elif rgb[2] == 1:
+        output += "and a splotch of blue to round it all off."
+    elif rgb[2] >= 2:
+        output += "and holy cow this is my jam!\n*I'm blue da ba dee da ba daa*\n*Da ba dee da ba daa, da ba dee da ba daa, da ba dee da ba daa*\n*Da ba dee da ba daa, da ba dee da ba daa, da ba dee da ba daa*"
+
+    await bot.say(output)
+    await bot.say("I hope that helped you come to terms with that colour you just gave me. I've basically inherited the abilities of one of my many sons, Mallen.")
+
+@pcheck.t1()
+@bot.command(pass_context = True)
 async def aliasSuggest(ctx, trigger, response):
     if not CTSuggestions.data[ctx.message.author.id]:
         CTSuggestions.data[ctx.message.author.id] = {}
@@ -141,13 +187,14 @@ async def shutdown(ctx):
 @bot.command(pass_context = True)
 async def setGame(ctx, gameName:str = None):
     if gameName:
-        await bot.change_presence(game = discord.Game(game = gameName))
+        await bot.change_presence(game = discord.Game(name = gameName))
+        await bot.say("All sorted for you, dearest son.")
     else:
         await bot.change_presence(game = None)
+        await bot.say("Playing status cleared. And they all lived happily ever after.")
 
     config.data["game"] = gameName
     config.save()
-    await bot.say("All sorted. That better?")
 
 def dadJoke(phrase):
     wList = phrase.split(" ")
