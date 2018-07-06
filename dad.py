@@ -24,6 +24,9 @@ bot = commands.Bot(command_prefix = config.data["prefix"], description = "The da
 
 @bot.event
 async def on_ready():
+    gameName = config.data["game"]
+    if gameName:
+        await bot.change_presence(game = discord.Game(name = gameName))
     print("Logged in as {} (ID: {})\n".format(bot.user.name, bot.user.id))
 
 @bot.event
@@ -184,8 +187,8 @@ async def shutdown(ctx):
     await bot.logout()
 
 @pcheck.owner()
-@bot.command(pass_context = True)
-async def setGame(ctx, gameName:str = None):
+@bot.command()
+async def setGame(gameName:str = None):
     if gameName:
         await bot.change_presence(game = discord.Game(name = gameName))
         await bot.say("All sorted for you, dearest son.")
@@ -193,8 +196,9 @@ async def setGame(ctx, gameName:str = None):
         await bot.change_presence(game = None)
         await bot.say("Playing status cleared. And they all lived happily ever after.")
 
-    config.data["game"] = gameName
-    config.save()
+    if not gameName == config.data["game"]:
+        config.data["game"] = gameName
+        config.save()
 
 def dadJoke(phrase):
     wList = phrase.split(" ")
