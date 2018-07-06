@@ -166,6 +166,7 @@ async def aliasList(ctx):
         em.add_field(name = key, value = CTResponses.data[key], inline = False)
 
     await bot.send_message(ctx.message.author, embed = em)
+    await bot.say("DM'd 😉")
 
 @bot.command(pass_context = True)
 async def updatePerms(ctx, member: discord.Member = None):
