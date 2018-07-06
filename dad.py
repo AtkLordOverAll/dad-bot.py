@@ -38,9 +38,6 @@ async def on_command_error(error, ctx):
         await send_cmd_help(ctx)
     elif isinstance(error, commands.CommandInvokeError):
         print("Exception in command '{}', {}".format(ctx.command.qualified_name, error.original))
-        prettyError = discord.Embed(title="You made a boo-boo!", description=error.original.__traceback__, color=0xff0000)
-        prettyError.set_footer(text="Now go think about what you've done")
-        await bot.send_message(channel, embed = prettyError)
         traceback.print_tb(error.original.__traceback__)
     elif isinstance(error, commands.CheckFailure):
         await bot.send_message(channel, "Insufficient permissions for this command. Sorry son.")
@@ -93,13 +90,12 @@ async def noticeMe(ctx):
 
 @pcheck.t1()
 @bot.command(pass_context = True)
-async def rgb(ctx, r, g, b):
+async def rgb(ctx, r , g, b):
     """
     Describes a colour to the user based on a given RGB value
 
     Usage: rgb [red value] [green value] [blue value]
     """
-
 
     try:
         if r > 255 or g > 255 or b > 255:
@@ -136,6 +132,26 @@ async def rgb(ctx, r, g, b):
 
     await bot.say(output)
     await bot.say("I hope that helped you come to terms with that colour you just gave me. I've basically inherited the abilities of one of my many sons, Mallen.")
+
+@pcheck.t1()
+@bot.command(pass_context = True)
+async def armyify(ctx, phrase: str = None):
+    await bot.say(f"**Sir {ctx.message.author.name}, yes sir!**")
+
+    if phrase:
+        phrase = phrase.upper()
+        await bot.delete_message(ctx.message)
+        sub = Pyson("./data/phoneticAlphabet")
+        output = ""
+
+        for letter in phrase:
+            if letter in sub.data.keys():
+                output += sub.data[letter]
+                output += " "
+            else:
+                output += letter
+
+        await bot.say(output)
 
 @pcheck.t1()
 @bot.command(pass_context = True)
