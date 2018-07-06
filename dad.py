@@ -154,8 +154,18 @@ async def alias(ctx, trigger, response):
         await bot.say("Alias for that phrase already exists I'm afraid")
     else:
         CTResponses.data[trigger] = response
+        CTResponses.save()
         await bot.say("New hip and trendy phrase acquired. Watch out kiddos!")
     await bot.delete_message(ctx.message)
+
+@pcheck.mods()
+@bot.command(pass_context = True)
+async def aliasList(ctx):
+    em = discord.Embed(title="**Aliases**", description="*Please do not share this around, it will result in swift removal of both your message and ability to use this command.*", color=0x046fe3)
+    for key in CTResponses.data.keys():
+        em.add_field(name = key, value = CTResponses.data[key], inline = False)
+
+    await bot.send_message(ctx.message.author, embed = em)
 
 @bot.command(pass_context = True)
 async def updatePerms(ctx, member: discord.Member = None):
