@@ -143,13 +143,21 @@ async def armyify(ctx, phrase: str = None):
         await bot.delete_message(ctx.message)
         sub = Pyson("./data/phoneticAlphabet")
         output = ""
+        newWord = True
 
         for letter in phrase:
             if letter in sub.data.keys():
-                output += sub.data[letter]
+                if newWord:
+                    output += "**{}**{}".format(sub.data[letter][0], sub.data[letter][-1:])
+                    newWord = False
+                else:
+                    output += sub.data[letter]
                 output += " "
+            elif letter == " ":
+                newWord = True
             else:
                 output += letter
+        output += ", sir!"
 
         await bot.say(output)
 
