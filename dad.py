@@ -18,6 +18,7 @@ CTSuggestions = Pyson("./data/cleanTextSuggestions")
 perms = Pyson("./data/permLevels")
 
 cleaner = re.compile(u"(<:[^\s]*>)|[~_*`]|[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF]", flags=re.UNICODE)
+BLURPLE = discord.Colour(0x7289da)
 # End globals
 
 bot = commands.Bot(command_prefix = config.data["prefix"], description = "The dadliest dad there is.")
@@ -186,7 +187,7 @@ async def alias(ctx, trigger, response):
 @pcheck.mods()
 @bot.command()
 async def aliasList():
-    em = discord.Embed(title="**Aliases**", description="*Please do not share this around, it will result in swift removal of both your message and ability to use this command.*", color=0x046fe3)
+    em = discord.Embed(title="**Aliases**", description="*Please do not share this around, it will result in swift removal of both your message and ability to use this command.*", color=BLURPLE)
     for key in CTResponses.data.keys():
         em.add_field(name = key, value = CTResponses.data[key], inline = False)
 
@@ -215,6 +216,17 @@ async def joinUs():
 @bot.command()
 async def log(*, toLog):
     print(toLog)
+
+
+@pcheck.devs()
+@bot.command(pass_context = True)
+async def listIDs(ctx):
+    embed=discord.Embed(title="Role IDs for {}".format(ctx.message.server.name), color=BLURPLE)
+    embed.set_footer(text="As requested by you, son.")
+    for role in ctx.message.server.roles:
+        embed.add_field(name=role.name, value=role.id, inline=False)
+
+    await bot.say(embed = embed)
 
 @pcheck.owner()
 @bot.command()
