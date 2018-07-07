@@ -148,7 +148,7 @@ async def armyify(ctx, phrase: str = None):
         for letter in phrase:
             if letter in sub.data.keys():
                 if newWord:
-                    output += "**{}**{}".format(sub.data[letter][0], sub.data[letter][-1:])
+                    output += "**{}**".format(sub.data[letter])
                     newWord = False
                 else:
                     output += sub.data[letter]
@@ -157,7 +157,8 @@ async def armyify(ctx, phrase: str = None):
                 newWord = True
             else:
                 output += letter
-        output += ", sir!"
+        
+        output = output[:-1] + ", sir!"
 
         await bot.say(output)
 
