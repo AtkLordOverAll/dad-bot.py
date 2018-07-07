@@ -65,6 +65,10 @@ async def on_message(message):
     if message.author.bot:
         return
 
+    if message.mentions and message.mentions[0].mention == message.content.strip():
+        await bot.send_message(message.channel, message.content)
+        return
+
     cleanMsg = re.sub(cleaner, "", message.content.lower()) # regex removes :emotes: and *~_` characters
 
     if cleanMsg in CTResponses.data.keys():
