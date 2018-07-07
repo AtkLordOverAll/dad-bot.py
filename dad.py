@@ -135,7 +135,7 @@ async def rgb(ctx, r , g, b):
 
 @pcheck.t1()
 @bot.command(pass_context = True)
-async def armyify(ctx, phrase: str = None):
+async def armyify(ctx, *, phrase: str = None):
     await bot.say(f"**Sir {ctx.message.author.name}, yes sir!**")
 
     if phrase:
@@ -184,13 +184,13 @@ async def alias(ctx, trigger, response):
     await bot.delete_message(ctx.message)
 
 @pcheck.mods()
-@bot.command(pass_context = True)
-async def aliasList(ctx):
+@bot.command()
+async def aliasList():
     em = discord.Embed(title="**Aliases**", description="*Please do not share this around, it will result in swift removal of both your message and ability to use this command.*", color=0x046fe3)
     for key in CTResponses.data.keys():
         em.add_field(name = key, value = CTResponses.data[key], inline = False)
 
-    await bot.send_message(ctx.message.author, embed = em)
+    await bot.whisper(embed = em)
     await bot.say("DM'd 😉")
 
 @bot.command(pass_context = True)
@@ -206,25 +206,25 @@ async def updatePerms(ctx, member: discord.Member = None):
         await bot.say("Permission levels updated for everyone. Glad to be of service.")
 
 @pcheck.devs()
-@bot.command(pass_context = True)
-async def joinUs(ctx):
+@bot.command()
+async def joinUs():
     await bot.whisper("Add me to your server with this: {}".format(discord.utils.oauth_url(bot.user.id)))
     await bot.reply("DM'd 😉")
 
 @pcheck.devs()
-@bot.command)
+@bot.command()
 async def log(*, toLog):
     print(toLog)
 
 @pcheck.owner()
-@bot.command(pass_context = True)
-async def shutdown(ctx):
+@bot.command()
+async def shutdown():
     await bot.say("Goodbye 👋")
     await bot.logout()
 
 @pcheck.owner()
 @bot.command()
-async def setGame(gameName:str = None):
+async def setGame(*, gameName:str = None):
     if gameName:
         await bot.change_presence(game = discord.Game(name = gameName))
         await bot.say("All sorted for you, dearest son.")
