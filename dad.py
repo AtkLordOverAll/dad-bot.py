@@ -157,7 +157,7 @@ async def armyify(ctx, phrase: str = None):
                 newWord = True
             else:
                 output += letter
-        
+
         output = output[:-1] + ", sir!"
 
         await bot.say(output)
@@ -212,9 +212,9 @@ async def joinUs(ctx):
     await bot.reply("DM'd 😉")
 
 @pcheck.devs()
-@bot.command(pass_context = True)
-async def log(ctx):
-    print(ctx.message.content)
+@bot.command)
+async def log(*, toLog):
+    print(toLog)
 
 @pcheck.owner()
 @bot.command(pass_context = True)
