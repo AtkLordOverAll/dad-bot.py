@@ -141,7 +141,7 @@ async def rgb(ctx, r , g, b):
 
 @pcheck.t1()
 @bot.command(pass_context = True)
-async def armyify(ctx, *, phrase: str = None):
+async def armyify(ctx, *, phrase = None):
     await bot.say(f"**Sir {ctx.message.author.display_name}, yes sir!**")
 
     if phrase:
@@ -198,6 +198,16 @@ async def aliasList():
 
     await bot.whisper(embed = em)
     await bot.say("DM'd 😉")
+
+@pcheck.mods()
+@bot.command()
+async def aliasRemove(*, trigger):
+    trigger = re.sub(cleaner, "", trigger)
+    try:
+        del CTResponses.data[trigger]
+        await bot.say("Alias removed. Sorry for any offense caused. It's hard being in with the kids.")
+    except KeyError:
+        await bot.say("Specified alias/trigger could not be found. Try again?")
 
 @pcheck.mods()
 @bot.command(pass_context = True)
