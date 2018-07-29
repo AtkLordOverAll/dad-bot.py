@@ -25,11 +25,10 @@ BLURPLE = discord.Colour(0x7289da)
 
 # Custom classes #
 class Suggestion():
-    def __init__(self, userID, trigger, response):
-        self.userID = userID
+    def __init__(self, trigger, response):
         self.trigger = trigger
         self.response = response
-        self.msgID = None
+        self.msg = None
 # End custom classes
 
 bot = commands.Bot(command_prefix = config.data["prefix"], description = "The dadliest dad there is.")
@@ -187,10 +186,18 @@ async def armyify(ctx, *, phrase = None):
 @pcheck.t1()
 @bot.command(pass_context = True)
 async def aliasSuggest(ctx, trigger, response):
-    if not CTSuggestions.data[ctx.message.server.id]:
-        CTSuggestions.data[ctx.message.server.id] = []
-    CTSuggestions.data[ctx.message.server.id].append(Suggestion(ctx.message.author.id, re.sub(cleaner, "", trigger.content.lower()), response))
+    try: # allocate storage for suggestions if there wasn't already the structures in place
+        CTSuggestions.data[ctx.message.server.id][ctx.message.author.id]
+    except NameError:
+        try:
+            CTSuggestions.data[ctx.message.server.id]
+        except NameError:
+            CTSuggestions.data[ctx.message.server.id] = {}
+        CTSuggestions.data[ctx.message.server.id][ctx.message.author.id] = []
+
+    CTSuggestions.data[ctx.message.server.id][ctx.message.author.id].append(Suggestion(re.sub(cleaner, "", trigger.content.lower()), response)) # store suggestion
     CTSuggestions.save()
+
     await bot.say(f"{ctx.message.author.display_name}, your suggestion was received for moderator review.")
     await bot.delete_message(ctx.message)
 
@@ -230,15 +237,22 @@ async def aliasRemove(*, trigger):
 @bot.command(pass_context = True)
 async def aliasReview(ctx, user: discord.Member = None):
     if user:
-        if iterateOver == None or iterateOver == {}:
+        deletable = await bot.whisper(f"Suggestions from {user.display_name}")
+        try:
+            for suggestion in CTResponses[ctx.message.server.id][user.id]:
+                suggestion.msg = await bot.whisper(f"\"{suggestion.trigger}\" :arrow_right: \"{suggestion.response}\"")
+        except NameError:
+            await delete_message(deletable)
             await bot.say(f"No suggestions from that {user.display_name} were found.")
-        else:
-            pass
     else:
-        if CTSuggestions.data == None or CTSuggestions.data == {}:
-            await bot.say("No suggestions found to review.")
-        else:
-            pass
+        try:
+            for user, suggestions in CTResponses[message.server.id].keys():
+                await bot.whisper(f"__Suggestions from {user}:__")
+                for suggestion in suggestions:
+                    suggestion.msg = await bot.whisper(f"\"{suggestion.trigger}\" :arrow_right: \"{suggestion.response}\"")
+                await bot.whisper("-")
+        except NameError:
+            await bot.say("No pending suggestions were found.")
 
 @bot.command(pass_context = True)
 async def updatePerms(ctx, member: discord.Member = None):
