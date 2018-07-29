@@ -91,7 +91,7 @@ async def on_message(message):
 @pcheck.t1()
 @bot.command(pass_context = True)
 async def noticeMe(ctx):
-    await bot.say("Hi {}".format(ctx.message.author.name))
+    await bot.say("Hi {}!".format(ctx.message.author.display_name))
 
 @pcheck.t1()
 @bot.command(pass_context = True)
@@ -103,7 +103,7 @@ async def rgb(ctx, r , g, b):
     """
 
     try:
-        if r > 255 or g > 255 or b > 255:
+        if float(r) > 255 or float(g) > 255 or float(b) > 255:
             await bot.say("Use realistic numbers son. Don't you know your powers of two?")
             return
         rgb = (float(r) // 85, float(g) // 85, float(b) // 85)
@@ -141,7 +141,7 @@ async def rgb(ctx, r , g, b):
 @pcheck.t1()
 @bot.command(pass_context = True)
 async def armyify(ctx, *, phrase: str = None):
-    await bot.say(f"**Sir {ctx.message.author.name}, yes sir!**")
+    await bot.say(f"**Sir {ctx.message.author.display_name}, yes sir!**")
 
     if phrase:
         phrase = phrase.upper()
@@ -172,8 +172,8 @@ async def armyify(ctx, *, phrase: str = None):
 async def aliasSuggest(ctx, trigger, response):
     if not CTSuggestions.data[ctx.message.author.id]:
         CTSuggestions.data[ctx.message.author.id] = {}
-    CTSuggestions.data[ctx.message.author.id][trigger] = response
-    await bot.say("Suggestion received for moderator review.")
+    CTSuggestions.data[ctx.message.author.id][re.sub(cleaner, "", trigger.content.lower())] = response # adds suggestion to dictionary using cleaned trigger phrase but exact response phrase
+    await bot.say(f"{ctx.message.author.display_name}, your suggestion was received for moderator review.")
     await bot.delete_message(ctx.message)
 
 @pcheck.mods()
@@ -197,6 +197,11 @@ async def aliasList():
 
     await bot.whisper(embed = em)
     await bot.say("DM'd 😉")
+
+@pcheck.mods()
+@bot.command()
+async def aliasReview(user: discord.Member = None):
+    pass
 
 @bot.command(pass_context = True)
 async def updatePerms(ctx, member: discord.Member = None):
