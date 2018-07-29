@@ -70,7 +70,7 @@ async def on_member_join(member):
 @bot.event
 async def on_message(message):
     # Plain text functionality
-    if message.author.bot:
+    if message.author.bot or message.channel.is_private:
         return
 
     if message.mentions and message.mentions[0].mention == message.content.strip():
@@ -219,6 +219,7 @@ async def aliasRemove(*, trigger):
 @pcheck.mods()
 @bot.command(pass_context = True)
 async def aliasReview(ctx, user: discord.Member = None):
+    #messageStore = {}
     if user:
         iterateOver = CTSuggestions.data[user.id]
         if iterateOver == None or iterateOver == {}:
@@ -226,7 +227,7 @@ async def aliasReview(ctx, user: discord.Member = None):
         else:
             await bot.whisper(f"__All aliases suggested by {user.display_name}:__")
             for trigger, response in iterateOver.items():
-                await bot.whisper("\"{trigger}\" :arrow_right: \"{response}\"")
+                msg = await bot.whisper("\"{trigger}\" :arrow_right: \"{response}\"")
             await bot.whisper("*React with :thumbsup: or :thumbsdown: to accept/reject each suggestion.*")
     else:
         if CTSuggestions.data == None or CTSuggestions.data == {}:
@@ -234,7 +235,7 @@ async def aliasReview(ctx, user: discord.Member = None):
         else:
             for userID, suggestions in CTSuggestions.data.items():
                 if suggestions != {}:
-                    await bot.whisper(f"__All aliases suggested by {ctx.message.server.get_member(userID).display_name}:__")
+                    msg = await bot.whisper(f"__All aliases suggested by {ctx.message.server.get_member(userID).display_name}:__")
                     for trigger, response in suggestions.items():
                         await bot.whisper(f"\"{trigger}\" :arrow_right: \"{response}\"")
             await bot.whisper("*React with :thumbsup: or :thumbsdown: to accept/reject each suggestion.*")
