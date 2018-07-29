@@ -187,15 +187,15 @@ async def armyify(ctx, *, phrase = None):
 @bot.command(pass_context = True)
 async def aliasSuggest(ctx, trigger, response):
     try: # allocate storage for suggestions if there wasn't already the structures in place
-        CTSuggestions.data[ctx.message.server.id][ctx.message.author.id]
+        CTSuggestions.data[ctx.message.server][ctx.message.author]
     except NameError:
         try:
-            CTSuggestions.data[ctx.message.server.id]
+            CTSuggestions.data[ctx.message.server]
         except NameError:
-            CTSuggestions.data[ctx.message.server.id] = {}
-        CTSuggestions.data[ctx.message.server.id][ctx.message.author.id] = []
+            CTSuggestions.data[ctx.message.server] = {}
+        CTSuggestions.data[ctx.message.server][ctx.message.author] = []
 
-    CTSuggestions.data[ctx.message.server.id][ctx.message.author.id].append(Suggestion(re.sub(cleaner, "", trigger.content.lower()), response)) # store suggestion
+    CTSuggestions.data[ctx.message.server][ctx.message.author].append(Suggestion(re.sub(cleaner, "", trigger.content.lower()), response)) # store suggestion
     CTSuggestions.save()
 
     await bot.say(f"{ctx.message.author.display_name}, your suggestion was received for moderator review.")
@@ -239,15 +239,15 @@ async def aliasReview(ctx, user: discord.Member = None):
     if user:
         deletable = await bot.whisper(f"Suggestions from {user.display_name}")
         try:
-            for suggestion in CTResponses[ctx.message.server.id][user.id]:
+            for suggestion in CTResponses[ctx.message.server][user]:
                 suggestion.msg = await bot.whisper(f"\"{suggestion.trigger}\" :arrow_right: \"{suggestion.response}\"")
         except NameError:
             await delete_message(deletable)
             await bot.say(f"No suggestions from that {user.display_name} were found.")
     else:
         try:
-            for user, suggestions in CTResponses[message.server.id].keys():
-                await bot.whisper(f"__Suggestions from {user}:__")
+            for member, suggestions in CTResponses[message.server.id].keys():
+                await bot.whisper(f"__Suggestions from {member.display_name}:__")
                 for suggestion in suggestions:
                     suggestion.msg = await bot.whisper(f"\"{suggestion.trigger}\" :arrow_right: \"{suggestion.response}\"")
                 await bot.whisper("-")
