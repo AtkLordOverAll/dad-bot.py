@@ -60,14 +60,12 @@ async def send_cmd_help(ctx):
     if ctx.invoked_subcommand:
         pages = bot.formatter.format_help_for(ctx, ctx.invoked_subcommand)
         for page in pages:
-            em = discord.Embed(description=page.strip("```").replace('<', '[').replace('>', ']'),
-                               color=discord.Color.blue())
+            em = discord.Embed(description=page.strip("```").replace('<', '[').replace('>', ']'), color=discord.Color.blue())
             await bot.send_message(ctx.message.channel, embed=em)
     else:
         pages = bot.formatter.format_help_for(ctx, ctx.command)
         for page in pages:
-            em = discord.Embed(description=page.strip("```").replace('<', '[').replace('>', ']'),
-                               color=discord.Color.blue())
+            em = discord.Embed(description=page.strip("```").replace('<', '[').replace('>', ']'), color=discord.Color.blue())
             await bot.send_message(ctx.message.channel, embed=em)
 
 @bot.event
