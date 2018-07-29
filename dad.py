@@ -201,7 +201,25 @@ async def aliasList():
 @pcheck.mods()
 @bot.command()
 async def aliasReview(user: discord.Member = None):
-    pass
+    if user:
+        iterateOver = CTSuggestions.data[user.id]
+        if iterateOver == None or iterateOver == {}:
+            await bot.say(f"No suggestions from that {user.display_name} were found.")
+        else:
+            await bot.whisper(f"__All aliases suggested by {user.display_name}:__")
+            for trigger, response in iterateOver.items():
+                await bot.whisper(""""{trigger}" :arrow_right: "{response}"""")
+            await bot.whisper("*React with :thumbsup: or :thumbsdown: to accept/reject each suggestion.*")
+    else:
+        if CTSuggestions.data == None or CTSuggestions.data == {}:
+            await bot.say("No suggestions found to review.")
+        else:
+            for userID, suggestions in CTSuggestions.data.items():
+                if suggestions != {}:
+                    await bot.whisper(f"__All aliases suggested by {userID}:__")
+                    for trigger, response in suggestions.items():
+                        await bot.whisper(f""""{trigger}" :arrow_right: "{response}"""")
+            await bot.whisper("*React with :thumbsup: or :thumbsdown: to accept/reject each suggestion.*")
 
 @bot.command(pass_context = True)
 async def updatePerms(ctx, member: discord.Member = None):
