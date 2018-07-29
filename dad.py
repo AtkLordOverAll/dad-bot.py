@@ -7,6 +7,7 @@ import traceback
 
 from plugins import pcheck
 from plugins.pyson import Pyson
+from plugins.pyckle import Pyckle
 
 # Load globals
 config = Pyson("./config")
@@ -15,8 +16,7 @@ if config.data == {}:
     quit()
 
 CTResponses = Pyson("./data/cleanTextResponses")
-with open("./data/CTSuggestions.pickle") as f:
-    CTSuggestions = pickle.load(f) #Pyson("./data/cleanTextSuggestions")
+CTSuggestions = Pyckle("./data/CTSuggestions")
 perms = Pyson("./data/permLevels")
 
 cleaner = re.compile(u"(<:[^\s]*>)|[~_*`]|[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF]", flags=re.UNICODE)
@@ -25,7 +25,7 @@ BLURPLE = discord.Colour(0x7289da)
 
 # Custom classes #
 class Suggestion():
-    def __init__(userID, trigger, response):
+    def __init__(self, userID, trigger, response):
         self.userID = userID
         self.trigger = trigger
         self.response = response
@@ -189,14 +189,12 @@ async def armyify(ctx, *, phrase = None):
 @pcheck.t1()
 @bot.command(pass_context = True)
 async def aliasSuggest(ctx, trigger, response):
-    if not CTSuggestions[ctx.message.server.id]:
-        CTSuggestions[ctx.message.server.id] = []
-    CTSuggestions[ctx.message.server.id].append(Suggestion(ctx.message.author.id, re.sub(cleaner, "", trigger.content.lower()), response))
+    if not CTSuggestions.data[ctx.message.server.id]:
+        CTSuggestions.data[ctx.message.server.id] = []
+    CTSuggestions.data[ctx.message.server.id].append(Suggestion(ctx.message.author.id, re.sub(cleaner, "", trigger.content.lower()), response))
+    CTSuggestions.save()
     await bot.say(f"{ctx.message.author.display_name}, your suggestion was received for moderator review.")
     await bot.delete_message(ctx.message)
-
-    with open("./data/CTSuggestions.pickle") as f:
-        pickle.dump(CTSuggestions, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 @pcheck.mods()
 @bot.command(pass_context = True)
@@ -233,9 +231,7 @@ async def aliasRemove(*, trigger):
 @pcheck.mods()
 @bot.command(pass_context = True)
 async def aliasReview(ctx, user: discord.Member = None):
-    #messageStore = {}
     if user:
-        iterateOver = CTSuggestions.data[user.id]
         if iterateOver == None or iterateOver == {}:
             await bot.say(f"No suggestions from that {user.display_name} were found.")
         else:
