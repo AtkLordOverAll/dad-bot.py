@@ -59,6 +59,13 @@ async def send_cmd_help(ctx):
                                color=discord.Color.blue())
             await bot.send_message(ctx.message.channel, embed=em)
 
+@bot.event
+async def on_member_join(member):
+    if not member.bot:
+        await bot.add_roles(member, discord.utils.get(member.server.roles, id = config.data["tier1"]))
+        await bot.send_message(member.server.get_channel("218804362061807617"), f"Welcome {member.display_name}, it's nice to meet you!")
+    else:
+        await bot.send_message(member.server.get_channel("218804362061807617"), "Another bot rivals my presence... my jimmies are rustled.")
 
 @bot.event
 async def on_message(message):
