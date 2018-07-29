@@ -208,7 +208,7 @@ async def aliasReview(user: discord.Member = None):
         else:
             await bot.whisper(f"__All aliases suggested by {user.display_name}:__")
             for trigger, response in iterateOver.items():
-                await bot.whisper(""""{trigger}" :arrow_right: "{response}"""")
+                await bot.whisper("\"{trigger}\" :arrow_right: \"{response}\"")
             await bot.whisper("*React with :thumbsup: or :thumbsdown: to accept/reject each suggestion.*")
     else:
         if CTSuggestions.data == None or CTSuggestions.data == {}:
@@ -218,7 +218,7 @@ async def aliasReview(user: discord.Member = None):
                 if suggestions != {}:
                     await bot.whisper(f"__All aliases suggested by {userID}:__")
                     for trigger, response in suggestions.items():
-                        await bot.whisper(f""""{trigger}" :arrow_right: "{response}"""")
+                        await bot.whisper(f"\"{trigger}\" :arrow_right: \"{response}\"")
             await bot.whisper("*React with :thumbsup: or :thumbsdown: to accept/reject each suggestion.*")
 
 @bot.command(pass_context = True)
