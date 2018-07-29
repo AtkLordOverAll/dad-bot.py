@@ -25,6 +25,7 @@ bot = commands.Bot(command_prefix = config.data["prefix"], description = "The da
 
 @bot.event
 async def on_ready():
+    print(f"Running discord.py version {discord.__version__}")
     gameName = config.data["game"]
     if gameName:
         await bot.change_presence(game = discord.Game(name = gameName))
@@ -199,8 +200,8 @@ async def aliasList():
     await bot.say("DM'd 😉")
 
 @pcheck.mods()
-@bot.command()
-async def aliasReview(user: discord.Member = None):
+@bot.command(pass_context = True)
+async def aliasReview(ctx, user: discord.Member = None):
     if user:
         iterateOver = CTSuggestions.data[user.id]
         if iterateOver == None or iterateOver == {}:
@@ -216,7 +217,7 @@ async def aliasReview(user: discord.Member = None):
         else:
             for userID, suggestions in CTSuggestions.data.items():
                 if suggestions != {}:
-                    await bot.whisper(f"__All aliases suggested by {userID}:__")
+                    await bot.whisper(f"__All aliases suggested by {ctx.message.server.get_member(userID).display_name}:__")
                     for trigger, response in suggestions.items():
                         await bot.whisper(f"\"{trigger}\" :arrow_right: \"{response}\"")
             await bot.whisper("*React with :thumbsup: or :thumbsdown: to accept/reject each suggestion.*")
@@ -243,7 +244,6 @@ async def joinUs():
 @bot.command()
 async def log(*, toLog):
     print(toLog)
-
 
 @pcheck.devs()
 @bot.command(pass_context = True)
