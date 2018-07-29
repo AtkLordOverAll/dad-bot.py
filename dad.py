@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import json
+import pickle
 import re
 import traceback
 
@@ -14,12 +15,22 @@ if config.data == {}:
     quit()
 
 CTResponses = Pyson("./data/cleanTextResponses")
-CTSuggestions = Pyson("./data/cleanTextSuggestions")
+with open("./data/CTSuggestions.pickle") as f:
+    CTSuggestions = pickle.load(f) #Pyson("./data/cleanTextSuggestions")
 perms = Pyson("./data/permLevels")
 
 cleaner = re.compile(u"(<:[^\s]*>)|[~_*`]|[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF]", flags=re.UNICODE)
 BLURPLE = discord.Colour(0x7289da)
 # End globals
+
+# Custom classes #
+class Suggestion():
+    def __init__(userID, trigger, response):
+        self.userID = userID
+        self.trigger = trigger
+        self.response = response
+        self.msgID = None
+# End custom classes
 
 bot = commands.Bot(command_prefix = config.data["prefix"], description = "The dadliest dad there is.")
 
@@ -178,11 +189,14 @@ async def armyify(ctx, *, phrase = None):
 @pcheck.t1()
 @bot.command(pass_context = True)
 async def aliasSuggest(ctx, trigger, response):
-    if not CTSuggestions.data[ctx.message.author.id]:
-        CTSuggestions.data[ctx.message.author.id] = {}
-    CTSuggestions.data[ctx.message.author.id][re.sub(cleaner, "", trigger.content.lower())] = response # adds suggestion to dictionary using cleaned trigger phrase but exact response phrase
+    if not CTSuggestions[ctx.message.server.id]:
+        CTSuggestions[ctx.message.server.id] = []
+    CTSuggestions[ctx.message.server.id].append(Suggestion(ctx.message.author.id, re.sub(cleaner, "", trigger.content.lower()), response))
     await bot.say(f"{ctx.message.author.display_name}, your suggestion was received for moderator review.")
     await bot.delete_message(ctx.message)
+
+    with open("./data/CTSuggestions.pickle") as f:
+        pickle.dump(CTSuggestions, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 @pcheck.mods()
 @bot.command(pass_context = True)
@@ -225,20 +239,12 @@ async def aliasReview(ctx, user: discord.Member = None):
         if iterateOver == None or iterateOver == {}:
             await bot.say(f"No suggestions from that {user.display_name} were found.")
         else:
-            await bot.whisper(f"__All aliases suggested by {user.display_name}:__")
-            for trigger, response in iterateOver.items():
-                msg = await bot.whisper("\"{trigger}\" :arrow_right: \"{response}\"")
-            await bot.whisper("*React with :thumbsup: or :thumbsdown: to accept/reject each suggestion.*")
+            pass
     else:
         if CTSuggestions.data == None or CTSuggestions.data == {}:
             await bot.say("No suggestions found to review.")
         else:
-            for userID, suggestions in CTSuggestions.data.items():
-                if suggestions != {}:
-                    msg = await bot.whisper(f"__All aliases suggested by {ctx.message.server.get_member(userID).display_name}:__")
-                    for trigger, response in suggestions.items():
-                        await bot.whisper(f"\"{trigger}\" :arrow_right: \"{response}\"")
-            await bot.whisper("*React with :thumbsup: or :thumbsdown: to accept/reject each suggestion.*")
+            pass
 
 @bot.command(pass_context = True)
 async def updatePerms(ctx, member: discord.Member = None):
