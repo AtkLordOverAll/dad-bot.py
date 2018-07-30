@@ -16,7 +16,7 @@ if config.data == {}:
 CTResponses = Pyson("./data/cleanTextResponses")
 CTSuggestions = Pyckle("./data/CTSuggestions")
 
-cleaner = re.compile(u"(<:[^\s]*>)|[~_*`]|[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF]", flags=re.UNICODE)
+CLEANER = re.compile(u"(<:[^\s]*>)|[~_*`]|[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF]", flags=re.UNICODE)
 BLURPLE = discord.Colour(0x7289da)
 # End globals
 
@@ -90,7 +90,7 @@ async def on_message(message):
         await bot.send_message(message.channel, message.content)
         return
 
-    cleanMsg = re.sub(cleaner, "", message.content.lower()) # regex removes :emotes: and *~_` characters
+    cleanMsg = re.sub(CLEANER, "", message.content.lower()) # regex removes :emotes: and *~_` characters
 
     if cleanMsg in CTResponses.data.keys():
         await bot.send_message(message.channel, CTResponses.data[message.content])
@@ -191,7 +191,7 @@ async def armyify(ctx, *, phrase = None):
 @pcheck.t1()
 @bot.command(pass_context = True)
 async def aliasSuggest(ctx, trigger, response):
-    trigger = re.sub(cleaner, "", trigger.lower())
+    trigger = re.sub(CLEANER, "", trigger.lower())
     CTSuggestions.data[ctx.message.server.id][ctx.message.author.id].append(Suggestion(trigger, response)) # store suggestion
     CTSuggestions.save()
     await bot.say(f"{ctx.message.author.display_name}, your suggestion was received for moderator review.")
@@ -200,7 +200,7 @@ async def aliasSuggest(ctx, trigger, response):
 @pcheck.mods()
 @bot.command(pass_context = True)
 async def alias(ctx, trigger, response):
-    trigger = re.sub(cleaner, "", trigger)
+    trigger = re.sub(CLEANER, "", trigger)
     if trigger in CTResponses.data.keys():
         await bot.say("Alias for that phrase already exists I'm afraid")
     else:
@@ -222,7 +222,7 @@ async def aliasList():
 @pcheck.mods()
 @bot.command()
 async def aliasRemove(*, trigger):
-    trigger = re.sub(cleaner, "", trigger)
+    trigger = re.sub(CLEANER, "", trigger)
     try:
         del CTResponses.data[trigger]
         await bot.say("Alias removed. Sorry for any offense caused. It's hard being in with the kids.")
