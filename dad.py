@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import re
 import traceback
+from datetime import timedelta
 
 from plugins import pcheck
 from plugins.pyson import Pyson
@@ -30,22 +31,23 @@ BLURPLE = discord.Colour(0x7289da)
 
 bot = commands.Bot(command_prefix = config.data["prefix"], description = "The dadliest dad there is.")
 
-if CTSuggestions.data == None:
-    CTSuggestions.data = {}
-    for server in bot.servers:
-        CTSuggestions.data[server.id] = {}
-        for member in server.members:
-            CTSuggestions.data[server.id][member.id] = []
-    CTSuggestions.save()
-
 @bot.event
 async def on_ready():
+    if CTSuggestions.data == None:
+        CTSuggestions.data = {}
+        for server in bot.servers:
+            CTSuggestions.data[server.id] = {}
+            for member in server.members:
+                CTSuggestions.data[server.id][member.id] = []
+        CTSuggestions.save()
+
     print(f"Running discord.py version {discord.__version__}")
     gameName = config.data["game"]
     if gameName:
         await bot.change_presence(game = discord.Game(name = gameName))
     print("Logged in as {} (ID: {})\n".format(bot.user.name, bot.user.id))
 
+"""
 @bot.event
 async def on_command_error(error, ctx):
     channel = ctx.message.channel
@@ -58,6 +60,7 @@ async def on_command_error(error, ctx):
         traceback.print_tb(error.original.__traceback__)
     elif isinstance(error, commands.CheckFailure):
         await bot.send_message(channel, "Insufficient permissions for this command. Sorry son.")
+"""
 
 @bot.event
 async def send_cmd_help(ctx):
@@ -191,8 +194,11 @@ async def armyify(ctx, *, phrase = None):
 @pcheck.t1()
 @bot.command(pass_context = True)
 async def aliasSuggest(ctx, trigger, response):
+    print(CTSuggestions.data)
     trigger = re.sub(CLEANER, "", trigger.lower())
-    CTSuggestions.data[ctx.message.server.id][ctx.message.author.id].append(Suggestion(trigger, response)) # store suggestion
+    storeThis = Suggestion(trigger, response)
+    lst = CTSuggestions.data[ctx.message.server.id][ctx.message.author.id] # errors hard
+    lst.append(storeThis)
     CTSuggestions.save()
     await bot.say(f"{ctx.message.author.display_name}, your suggestion was received for moderator review.")
     await bot.delete_message(ctx.message)
