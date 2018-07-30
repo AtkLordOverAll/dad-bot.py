@@ -7,6 +7,14 @@ from plugins import pcheck
 from plugins.pyson import Pyson
 from plugins.pyckle import Pyckle
 
+# Custom classes #
+class Suggestion():
+    def __init__(self, trigger, response):
+        self.trigger = trigger
+        self.response = response
+        self.msg = None
+# End custom classes
+
 # Load globals
 config = Pyson("./config")
 if config.data == {}:
@@ -19,14 +27,6 @@ CTSuggestions = Pyckle("./data/CTSuggestions")
 CLEANER = re.compile(u"(<:[^\s]*>)|[~_*`]|[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF]", flags=re.UNICODE)
 BLURPLE = discord.Colour(0x7289da)
 # End globals
-
-# Custom classes #
-class Suggestion():
-    def __init__(self, trigger, response):
-        self.trigger = trigger
-        self.response = response
-        self.msg = None
-# End custom classes
 
 bot = commands.Bot(command_prefix = config.data["prefix"], description = "The dadliest dad there is.")
 
