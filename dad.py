@@ -1,7 +1,5 @@
 import discord
 from discord.ext import commands
-import json
-import pickle
 import re
 import traceback
 
@@ -17,7 +15,6 @@ if config.data == {}:
 
 CTResponses = Pyson("./data/cleanTextResponses")
 CTSuggestions = Pyckle("./data/CTSuggestions")
-perms = Pyson("./data/permLevels")
 
 cleaner = re.compile(u"(<:[^\s]*>)|[~_*`]|[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF]", flags=re.UNICODE)
 BLURPLE = discord.Colour(0x7289da)
@@ -32,6 +29,14 @@ class Suggestion():
 # End custom classes
 
 bot = commands.Bot(command_prefix = config.data["prefix"], description = "The dadliest dad there is.")
+
+if CTSuggestions.data == None:
+    CTSuggestions.data = {}
+    for server in bot.servers:
+        CTSuggestions.data[server.id] = {}
+        for member in server.members:
+            CTSuggestions.data[server.id][member.id] = []
+    CTSuggestions.save()
 
 @bot.event
 async def on_ready():
@@ -186,18 +191,9 @@ async def armyify(ctx, *, phrase = None):
 @pcheck.t1()
 @bot.command(pass_context = True)
 async def aliasSuggest(ctx, trigger, response):
-    try: # allocate storage for suggestions if there wasn't already the structures in place
-        CTSuggestions.data[ctx.message.server][ctx.message.author]
-    except NameError:
-        try:
-            CTSuggestions.data[ctx.message.server]
-        except NameError:
-            CTSuggestions.data[ctx.message.server] = {}
-        CTSuggestions.data[ctx.message.server][ctx.message.author] = []
-
-    CTSuggestions.data[ctx.message.server][ctx.message.author].append(Suggestion(re.sub(cleaner, "", trigger.content.lower()), response)) # store suggestion
+    trigger = re.sub(cleaner, "", trigger.lower())
+    CTSuggestions.data[ctx.message.server.id][ctx.message.author.id].append(Suggestion(trigger, response)) # store suggestion
     CTSuggestions.save()
-
     await bot.say(f"{ctx.message.author.display_name}, your suggestion was received for moderator review.")
     await bot.delete_message(ctx.message)
 
@@ -235,9 +231,9 @@ async def aliasRemove(*, trigger):
 
 @pcheck.mods()
 @bot.command(pass_context = True)
-async def aliasReview(ctx, user: discord.Member = None):
+async def aliasReview(ctx, user: discord.Member = None, number = -1, check = False):
     if user:
-        deletable = await bot.whisper(f"Suggestions from {user.display_name}")
+        deletable = await bot.whisper(f"__Suggestions from {user.display_name}:__")
         try:
             for suggestion in CTResponses[ctx.message.server][user]:
                 suggestion.msg = await bot.whisper(f"\"{suggestion.trigger}\" :arrow_right: \"{suggestion.response}\"")
@@ -253,18 +249,6 @@ async def aliasReview(ctx, user: discord.Member = None):
                 await bot.whisper("-")
         except NameError:
             await bot.say("No pending suggestions were found.")
-
-@bot.command(pass_context = True)
-async def updatePerms(ctx, member: discord.Member = None):
-    if not manualPermCheck(ctx.message.author, 4):
-        await bot.say("Insufficient permissions to use that command")
-    if member:
-        permIndividualUpdate(member)
-        await bot.say("Permission levels updated for {}. Hope that helps.".format(member.name))
-    else:
-        perms.data = permFullUpdate(ctx.message.server)
-        perms.save(True)
-        await bot.say("Permission levels updated for everyone. Glad to be of service.")
 
 @pcheck.devs()
 @bot.command()
@@ -316,61 +300,5 @@ def dadJoke(phrase):
             wList = wList[:n+1]
             break
     return "Hi {}, I'm Dad.".format(" ".join(wList))
-
-def manualPermCheck(user, level = 1):
-    """
-    Function
-    Checks for user having a specific permission level, or one higher than specified
-
-    Parameters: user (Discord member object), level (power level as integer)
-    Returns: True if user has >= permissions, False otherwise
-    """
-    level -= 1
-    levels = ["tier1", "tier2", "tier3", "mods", "devs", "owner"]
-
-    if level == 5:
-        if config.data["ownerID"] == user.id:
-            return True
-    elif config.data[levels[level]] in user.roles:
-        return True
-    else:
-        try:
-            return manualPermCheck(user, level + 2)
-        except IndexError:
-            return False
-
-def permLevel(member):
-    if member.bot:
-        return 0
-    elif config.data["ownerID"] == member.id:
-        return 6
-
-    holding = 0
-
-    for role in member.roles:
-        if role.id == config.data["devs"]:
-            return 5
-        elif role.id == config.data["mods"] and holding < 4:
-            holding = 4
-        elif role.id == config.data["tier3"] and holding < 3:
-            holding = 3
-        elif role.id == config.data["tier2"] and holding < 2:
-            holding = 2
-        elif role.id == config.data["tier1"] and holding < 1:
-            holding = 1
-
-    return holding
-
-def permIndividualUpdate(member):
-    perms.data[member.id] = permLevel(member)
-    perms.save(True)
-
-def permFullUpdate(server):
-    notPermLevels = {}
-
-    for member in server.members:
-        notPermLevels[member.id] = permLevel(member)
-
-    return notPermLevels
 
 bot.run(config.data["token"])
