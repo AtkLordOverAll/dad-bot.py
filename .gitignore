@@ -1,6 +1,4 @@
 config.json
 examplebot.py
 __pycache__
-data/cleanTextResponses.json
-data/cleanTextSuggestions.json
-data/permLevels.json
+data
