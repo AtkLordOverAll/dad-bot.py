@@ -19,7 +19,7 @@ class Pyson():
                 with open(fileName) as f:
                     data = json.load(f)
             except ValueError:
-                print("Data read failed, empty dictionary being used)
+                print("Data read failed, empty dictionary being used")
                 data = {}
         self.fileName = fileName
         self.data = data
