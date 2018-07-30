@@ -16,7 +16,7 @@ class Pyckle():
             print("File not found, Pyckle blank")
         else:
             try:
-                with open(fileName) as f:
+                with open(fileName, "rb") as f:
                     data = pickle.load(f)
             except ValueError:
                 data = None
@@ -25,5 +25,5 @@ class Pyckle():
         self.data = data
 
     def save(self):
-        with open(self.fileName, "w") as f:
+        with open(self.fileName, "wb") as f:
             pickle.dump(self.data, f, protocol=pickle.HIGHEST_PROTOCOL)
