@@ -237,24 +237,34 @@ async def aliasRemove(*, trigger):
 
 @pcheck.mods()
 @bot.command(pass_context = True)
-async def aliasReview(ctx, user: discord.Member = None, number = -1, check = False):
+async def aliasReview(ctx, user: discord.Member = None, number = -1, check = None):
+    count = number
+    if number == 0:
+        await bot.say("There was literally one number you couldn't use, and this was it")
+        return
+
+    if check:
+        pass
+
     if user:
         deletable = await bot.whisper(f"__Suggestions from {user.display_name}:__")
-        try:
-            for suggestion in CTResponses[ctx.message.server][user]:
-                suggestion.msg = await bot.whisper(f"\"{suggestion.trigger}\" :arrow_right: \"{suggestion.response}\"")
-        except NameError:
-            await delete_message(deletable)
-            await bot.say(f"No suggestions from that {user.display_name} were found.")
+        for suggestion in CTResponses.data[ctx.message.server.id][user.id]:
+            suggestion.msg = await bot.whisper(f"\"{suggestion.trigger}\" :arrow_right: \"{suggestion.response}\"")
+
+            number -= 1
+            if number == 0:
+                break
+
     else:
-        try:
-            for member, suggestions in CTResponses[message.server.id].keys():
-                await bot.whisper(f"__Suggestions from {member.display_name}:__")
-                for suggestion in suggestions:
-                    suggestion.msg = await bot.whisper(f"\"{suggestion.trigger}\" :arrow_right: \"{suggestion.response}\"")
-                await bot.whisper("-")
-        except NameError:
-            await bot.say("No pending suggestions were found.")
+        for member, suggestions in CTResponses.data[ctx.message.server.id].items():
+            await bot.whisper(f"__Suggestions from {member.display_name}:__")
+            for suggestion in suggestions:
+                suggestion.msg = await bot.whisper(f"\"{suggestion.trigger}\" :arrow_right: \"{suggestion.response}\"")
+            await bot.whisper("-")
+
+            number -= 1
+            if number == 0:
+                break
 
 @pcheck.devs()
 @bot.command()
