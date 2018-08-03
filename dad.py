@@ -238,14 +238,15 @@ async def aliasRemove(*, trigger):
 
 @pcheck.mods()
 @bot.command(pass_context = True)
-async def aliasReview(ctx, user: discord.Member = None, number = -1, check = None):
+async def aliasReview(ctx, user: discord.Member = None, number = -1, check = False):
     count = int(number)
+    check = bool(check)
     if number == 0:
         await bot.say("There was literally one number you couldn't use, and this was it")
         return
 
     if check:
-        pass
+        return
 
     if user:
         deletable = await bot.whisper(f"__Suggestions from {user.display_name}:__")
