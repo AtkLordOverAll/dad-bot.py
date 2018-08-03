@@ -13,6 +13,7 @@ class Suggestion():
     def __init__(self, trigger, response):
         self.trigger = trigger
         self.response = response
+        self.say = f"{trigger} -> {response}"
         self.msg = None
 # End custom classes
 
@@ -223,7 +224,7 @@ async def aliasList():
         em.add_field(name = key, value = CTResponses.data[key], inline = False)
 
     await bot.whisper(embed = em)
-    await bot.say("DM'd 😉")
+    await bot.say("DM'd :wink:")
 
 @pcheck.mods()
 @bot.command()
@@ -238,7 +239,7 @@ async def aliasRemove(*, trigger):
 @pcheck.mods()
 @bot.command(pass_context = True)
 async def aliasReview(ctx, user: discord.Member = None, number = -1, check = None):
-    count = number
+    count = int(number)
     if number == 0:
         await bot.say("There was literally one number you couldn't use, and this was it")
         return
@@ -248,7 +249,7 @@ async def aliasReview(ctx, user: discord.Member = None, number = -1, check = Non
 
     if user:
         deletable = await bot.whisper(f"__Suggestions from {user.display_name}:__")
-        for suggestion in CTResponses.data[ctx.message.server.id][user.id]:
+        for suggestion in CTSuggestions.data[ctx.message.server.id][user.id]:
             suggestion.msg = await bot.whisper(f"\"{suggestion.trigger}\" :arrow_right: \"{suggestion.response}\"")
 
             number -= 1
@@ -256,15 +257,19 @@ async def aliasReview(ctx, user: discord.Member = None, number = -1, check = Non
                 break
 
     else:
-        for member, suggestions in CTResponses.data[ctx.message.server.id].items():
-            await bot.whisper(f"__Suggestions from {member.display_name}:__")
+        await bot.say("Well, enjoy reviewing the server's suggestions. I've got plenty for ya :wink:")
+        for memberID, suggestions in CTSuggestions.data[ctx.message.server.id].items():
+            toSay = [f"__Suggestions from {ctx.message.server.get_member(memberID).display_name}:__"]
             for suggestion in suggestions:
-                suggestion.msg = await bot.whisper(f"\"{suggestion.trigger}\" :arrow_right: \"{suggestion.response}\"")
-            await bot.whisper("-")
+                toSay.append(f"\"{suggestion.trigger}\" :arrow_right: \"{suggestion.response}\"")
 
-            number -= 1
-            if number == 0:
-                break
+                number -= 1
+                if number == 0:
+                    break
+            if len(toSay) > 1:
+                await bot.whisper(toSay[0])
+                for msgText in toSay[1:]:
+                    pass
 
 @pcheck.devs()
 @bot.command()
