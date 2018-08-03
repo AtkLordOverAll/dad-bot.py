@@ -220,8 +220,8 @@ async def alias(ctx, trigger, response):
 @bot.command()
 async def aliasList():
     em = discord.Embed(title="**Aliases**", description="*Please do not share this around, it will result in swift removal of both your message and ability to use this command.*", color=BLURPLE)
-    for key in CTResponses.data.keys():
-        em.add_field(name = key, value = CTResponses.data[key], inline = False)
+    for trigger, response in CTResponses.data.items():
+        em.add_field(name = trigger, value = response, inline = False)
 
     await bot.whisper(embed = em)
     await bot.say("DM'd :wink:")
