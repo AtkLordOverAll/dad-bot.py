@@ -238,14 +238,11 @@ async def aliasRemove(*, trigger):
 
 @pcheck.mods()
 @bot.command(pass_context = True)
-async def aliasReview(ctx, user: discord.Member = None, number = -1, check = False):
+async def aliasReview(ctx, number = -1, user: discord.Member = None):
     count = int(number)
-    check = bool(check)
+
     if number == 0:
         await bot.say("There was literally one number you couldn't use, and this was it")
-        return
-
-    if check:
         return
 
     if user:
@@ -272,6 +269,11 @@ async def aliasReview(ctx, user: discord.Member = None, number = -1, check = Fal
                     count -= 1
                     if count == 0:
                         break
+
+@pcheck.mods()
+@bot.command(pass_context = True)
+async def aliasReviewComplete(ctx):
+    pass
 
 @pcheck.devs()
 @bot.command()
