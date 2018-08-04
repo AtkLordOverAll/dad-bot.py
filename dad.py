@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 import re
 import traceback
-from datetime import timedelta
 
 from plugins import pcheck
 from plugins.pyson import Pyson
@@ -280,13 +279,15 @@ async def aliasReview(ctx, number = -1, user: discord.Member = None):
 @pcheck.mods()
 @bot.command(pass_context = True)
 async def aliasReviewComplete(ctx, user: discord.Member = None):
+    checked = 0
     accepts = 0
     rejects = 0
+    await bot.say("Let's start checking through some DMs shall we")
+    tempMsg = await bot.whisper("*Processing...*")
     if user and len(CTSuggestions.data[ctx.message.server.id][user.id]) > 0:
         for suggestion in CTSuggestions.data[ctx.message.server.id][user.id]:
             if suggestion.msg:
-                message = await bot.get_message(bot.get_channel(suggestion.msgChID), suggestion.msgID)
-                print(message.content)
+                message = await bot.get_message(tempMsg.channel, suggestion.msgID)
                 for react in message.reactions:
                     print(react.id)
                     if react.id == "yesvalue":
@@ -301,15 +302,15 @@ async def aliasReviewComplete(ctx, user: discord.Member = None):
                         continue
 
                     await bot.edit_message(message, changeTo)
+                checked += 1
             else:
                 break # if only a certain amount of suggestions were checked, they are sent in the same order this loop runs, so there shouldn't be any items with a message id after this
     else:
         for suggestList in CTSuggestions.data[ctx.message.server.id].values():
             if len(suggestList) > 0:
-                print("Found user with suggestions")
                 for suggestion in suggestList:
                     if suggestion.msgID:
-                        message = await bot.get_message(bot.get_channel(suggestion.msgChID), suggestion.msgID)
+                        message = await bot.get_message(tempMsg.channel, suggestion.msgID)
                         print(message.content)
                         for react in message.reactions:
                             print(react.id)
@@ -325,6 +326,10 @@ async def aliasReviewComplete(ctx, user: discord.Member = None):
                                 continue
 
                             await bot.edit_message(message, changeTo)
+                        checked += 1
+
+    await bot.delete_message(tempMsg)
+    await bot.say(f"Checked {checked} alias(es), added {accepts} and rejected {rejects}")
 
 @pcheck.devs()
 @bot.command()
