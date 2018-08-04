@@ -246,31 +246,31 @@ async def aliasReview(ctx, number = -1, user: discord.Member = None):
 
     if user:
         if len(CTSuggestions.data[ctx.message.server.id][user.id]) > 0:
-            await bot.say("Sure thing")
-            await bot.whisper(f"__Suggestions from {user.display_name}:__")
+            await bot.say("Sure thing, incoming DM spam")
+            await bot.whisper(f"**__Suggestions from {user.display_name}:__**")
             for suggestion in CTSuggestions.data[ctx.message.server.id][user.id]:
                 msgSent = await bot.whisper(f"\"{suggestion.trigger}\" -> \"{suggestion.response}\"")
                 suggestion.msgID = msgSent.id
-
                 count -= 1
                 if count == 0:
                     break
+            await bot.whisper("Please react to each suggest with either ✔ or ✖")
             CTSuggestions.save()
         else:
             await bot.say(f"No suggestions from {user.display_name} were found")
 
     else:
-        await bot.say("Sure thing")
+        await bot.say("Sure thing, incoming DM spam")
         for memberID, suggestions in CTSuggestions.data[ctx.message.server.id].items():
             if len(suggestions) > 0:
-                await bot.whisper(f"__Suggestions from {ctx.message.server.get_member(memberID).display_name}:__")
+                await bot.whisper(f"**__Suggestions from {ctx.message.server.get_member(memberID).display_name}:__**")
                 for suggestion in suggestions:
                     msgSent = await bot.whisper(f"\"{suggestion.trigger}\" -> \"{suggestion.response}\"")
                     suggestion.msgID = msgSent.id
-
                     count -= 1
                     if count == 0:
                         break
+        await bot.whisper("Please react to each suggest with either ✔ or ✖\nUse the command `aliasReviewComplete` in the server when done")
         CTSuggestions.save()
 
 @pcheck.mods()
@@ -279,26 +279,26 @@ async def aliasReviewComplete(ctx, user: discord.Member = None):
     checked = 0
     accepts = 0
     rejects = 0
-    await bot.say("Let's start checking through some DMs shall we")
+    await bot.say("Let's start checking through some DMs shall we?")
     tempMsg = await bot.whisper("*Processing...*")
     if user and len(CTSuggestions.data[ctx.message.server.id][user.id]) > 0:
         for suggestion in CTSuggestions.data[ctx.message.server.id][user.id]:
-            if suggestion.msg:
+            if suggestion.msgID:
                 message = await bot.get_message(tempMsg.channel, suggestion.msgID)
                 for react in message.reactions:
-                    print(react.id)
-                    if react.id == "yesvalue":
+                    if react.emoji in ("☑", "✔", "✅"):
                         accepts += 1
-                        changeTo = f"Accepted ~~{message.content}~~"
-                        pass
-                    elif react.id == "novalue":
+                        changeTo = f"**Accepted** ~~{message.content}~~"
+                        CTResponses.data[suggestion.trigger] = suggestion.response
+                        suggestList.remove(suggestion)
+                        await bot.edit_message(message, changeTo)
+                        break
+                    elif react.emoji in ("❌", "✖", "🇽"):
                         rejects += 1
-                        changeTo = f"Rejected ~~{message.content}~~"
-                        pass
-                    else:
-                        continue
-
-                    await bot.edit_message(message, changeTo)
+                        changeTo = f"**Rejected** ~~{message.content}~~"
+                        suggestList.remove(suggestion)
+                        await bot.edit_message(message, changeTo)
+                        break
                 checked += 1
             else:
                 break # if only a certain amount of suggestions were checked, they are sent in the same order this loop runs, so there shouldn't be any items with a message id after this
@@ -308,24 +308,28 @@ async def aliasReviewComplete(ctx, user: discord.Member = None):
                 for suggestion in suggestList:
                     if suggestion.msgID:
                         message = await bot.get_message(tempMsg.channel, suggestion.msgID)
-                        print(message.content)
                         for react in message.reactions:
-                            print(react.id)
-                            if react.id == "yesvalue":
+                            if react.emoji in ("☑", "✔", "✅"):
                                 accepts += 1
-                                changeTo = f"Accepted ~~{message.content}~~"
-                                pass
-                            elif react.id == "novalue":
+                                changeTo = f"**Accepted** ~~{message.content}~~"
+                                CTResponses.data[suggestion.trigger] = suggestion.response
+                                suggestList.remove(suggestion)
+                                await bot.edit_message(message, changeTo)
+                                break
+                            elif react.emoji in ("❌", "✖", "🇽"):
                                 rejects += 1
-                                changeTo = f"Rejected ~~{message.content}~~"
-                                pass
-                            else:
-                                continue
-
-                            await bot.edit_message(message, changeTo)
+                                changeTo = f"**Rejected** ~~{message.content}~~"
+                                suggestList.remove(suggestion)
+                                await bot.edit_message(message, changeTo)
+                                break
                         checked += 1
 
-    await bot.delete_message(tempMsg)
+    if accepts > 0 or rejects > 0:
+        CTSuggestions.save()
+    if accepts > 0:
+        CTResponses.save()
+
+    await bot.edit_message(tempMsg, "*Processing complete*")
     await bot.say(f"Checked {checked} alias(es), added {accepts} and rejected {rejects}")
 
 @pcheck.devs()
