@@ -232,6 +232,7 @@ async def aliasRemove(*, trigger):
     trigger = re.sub(CLEANER, "", trigger)
     try:
         del CTResponses.data[trigger]
+        CTResponses.save()
         await bot.say("Alias removed. Sorry for any offense caused. It's hard being in with the kids.")
     except KeyError:
         await bot.say("Specified alias/trigger could not be found. Try again?")
@@ -272,8 +273,38 @@ async def aliasReview(ctx, number = -1, user: discord.Member = None):
 
 @pcheck.mods()
 @bot.command(pass_context = True)
-async def aliasReviewComplete(ctx):
-    pass
+async def aliasReviewComplete(ctx, user: discord.Member = None):
+    accepts = 0
+    rejects = 0
+    if user and len(CTSuggestions.data[ctx.messsage.server.id][user.id]) > 0:
+        for suggestion in CTSuggestions.data[ctx.messsage.server.id][user.id]:
+            if suggestion.msg:
+                message = await bot.get_message(ctx.message.author.id, suggestion.msg)
+                for react in message.reactions:
+                    print(react.id)
+                    if react.id ==
+            else:
+                break # if only a certain amount of suggestions were checked, they are sent in the same order this loop runs, so there shouldn't be any items with a message id after this
+    else:
+        for suggestList in CTSuggestions.data[ctx.messsage.server.id].values():
+            if len(suggestList) > 0:
+                for suggestion in suggestList:
+                    if suggestion.msg:
+                        message = await bot.get_message(ctx.message.author.id, suggestion.msg)
+                        for react in message.reactions:
+                            print(react.id)
+                            if react.id == "yesvalue":
+                                accepts += 1
+                                changeTo = f"Accepted ~~{message.content}~~"
+                                pass
+                            elif react.id == "novalue":
+                                rejects += 1
+                                changeTo = f"Rejected ~~{message.content}~~"
+                                pass
+                            else:
+                                continue
+
+                            await bot.edit_message(message, changeTo)
 
 @pcheck.devs()
 @bot.command()
