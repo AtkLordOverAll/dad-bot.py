@@ -14,7 +14,8 @@ class Suggestion():
         self.trigger = trigger
         self.response = response
         self.say = f"{trigger} -> {response}"
-        self.msg = None
+        self.msgID = None
+        self.msgChID = None
 # End custom classes
 
 # Load globals
@@ -195,10 +196,9 @@ async def armyify(ctx, *, phrase = None):
 @pcheck.t1()
 @bot.command(pass_context = True)
 async def aliasSuggest(ctx, trigger, response):
-    print(CTSuggestions.data)
     trigger = re.sub(CLEANER, "", trigger.lower())
     storeThis = Suggestion(trigger, response)
-    lst = CTSuggestions.data[ctx.message.server.id][ctx.message.author.id] # errors hard
+    lst = CTSuggestions.data[ctx.message.server.id][ctx.message.author.id]
     lst.append(storeThis)
     CTSuggestions.save()
     await bot.say(f"{ctx.message.author.display_name}, your suggestion was received for moderator review.")
@@ -251,11 +251,14 @@ async def aliasReview(ctx, number = -1, user: discord.Member = None):
             await bot.say("Sure thing")
             await bot.whisper(f"__Suggestions from {user.display_name}:__")
             for suggestion in CTSuggestions.data[ctx.message.server.id][user.id]:
-                suggestion.msg = await bot.whisper(f"\"{suggestion.trigger}\" :arrow_right: \"{suggestion.response}\"")
+                msgSent = await bot.whisper(f"\"{suggestion.trigger}\" -> \"{suggestion.response}\"")
+                suggestion.msgID = msgSent.id
+                suggestion.msgChID = msgSent.channel.id
 
                 count -= 1
                 if count == 0:
                     break
+            CTSuggestions.save()
         else:
             await bot.say(f"No suggestions from {user.display_name} were found")
 
@@ -265,32 +268,49 @@ async def aliasReview(ctx, number = -1, user: discord.Member = None):
             if len(suggestions) > 0:
                 await bot.whisper(f"__Suggestions from {ctx.message.server.get_member(memberID).display_name}:__")
                 for suggestion in suggestions:
-                    suggestion.msg = await bot.whisper(f"\"{suggestion.trigger}\" :arrow_right: \"{suggestion.response}\"")
+                    msgSent = await bot.whisper(f"\"{suggestion.trigger}\" -> \"{suggestion.response}\"")
+                    suggestion.msgID = msgSent.id
+                    suggestion.msgChID = msgSent.channel.id
 
                     count -= 1
                     if count == 0:
                         break
+        CTSuggestions.save()
 
 @pcheck.mods()
 @bot.command(pass_context = True)
 async def aliasReviewComplete(ctx, user: discord.Member = None):
     accepts = 0
     rejects = 0
-    if user and len(CTSuggestions.data[ctx.messsage.server.id][user.id]) > 0:
-        for suggestion in CTSuggestions.data[ctx.messsage.server.id][user.id]:
+    if user and len(CTSuggestions.data[ctx.message.server.id][user.id]) > 0:
+        for suggestion in CTSuggestions.data[ctx.message.server.id][user.id]:
             if suggestion.msg:
-                message = await bot.get_message(ctx.message.author.id, suggestion.msg)
+                message = await bot.get_message(suggestion.msgChID, suggestion.msgID)
+                print(message.content)
                 for react in message.reactions:
                     print(react.id)
-                    if react.id ==
+                    if react.id == "yesvalue":
+                        accepts += 1
+                        changeTo = f"Accepted ~~{message.content}~~"
+                        pass
+                    elif react.id == "novalue":
+                        rejects += 1
+                        changeTo = f"Rejected ~~{message.content}~~"
+                        pass
+                    else:
+                        continue
+
+                    await bot.edit_message(message, changeTo)
             else:
                 break # if only a certain amount of suggestions were checked, they are sent in the same order this loop runs, so there shouldn't be any items with a message id after this
     else:
-        for suggestList in CTSuggestions.data[ctx.messsage.server.id].values():
+        for suggestList in CTSuggestions.data[ctx.message.server.id].values():
             if len(suggestList) > 0:
+                print("Found user with suggestions")
                 for suggestion in suggestList:
-                    if suggestion.msg:
-                        message = await bot.get_message(ctx.message.author.id, suggestion.msg)
+                    if suggestion.msgID:
+                        message = await bot.get_message(suggestion.msgChID, suggestion.msgID)
+                        print(message.content)
                         for react in message.reactions:
                             print(react.id)
                             if react.id == "yesvalue":
