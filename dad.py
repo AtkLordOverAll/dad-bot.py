@@ -14,7 +14,6 @@ class Suggestion():
         self.response = response
         self.say = f"{trigger} -> {response}"
         self.msgID = None
-        self.msgChID = None
 # End custom classes
 
 # Load globals
@@ -252,7 +251,6 @@ async def aliasReview(ctx, number = -1, user: discord.Member = None):
             for suggestion in CTSuggestions.data[ctx.message.server.id][user.id]:
                 msgSent = await bot.whisper(f"\"{suggestion.trigger}\" -> \"{suggestion.response}\"")
                 suggestion.msgID = msgSent.id
-                suggestion.msgChID = msgSent.channel.id
 
                 count -= 1
                 if count == 0:
@@ -269,7 +267,6 @@ async def aliasReview(ctx, number = -1, user: discord.Member = None):
                 for suggestion in suggestions:
                     msgSent = await bot.whisper(f"\"{suggestion.trigger}\" -> \"{suggestion.response}\"")
                     suggestion.msgID = msgSent.id
-                    suggestion.msgChID = msgSent.channel.id
 
                     count -= 1
                     if count == 0:
