@@ -249,34 +249,35 @@ async def aliasReview(ctx, user: discord.Member = None, number = -1, check = Fal
         return
 
     if user:
-        deletable = await bot.whisper(f"__Suggestions from {user.display_name}:__")
-        for suggestion in CTSuggestions.data[ctx.message.server.id][user.id]:
-            suggestion.msg = await bot.whisper(f"\"{suggestion.trigger}\" :arrow_right: \"{suggestion.response}\"")
+        if len(CTSuggestions.data[ctx.message.server.id][user.id]) > 0:
+            await bot.say("Sure thing")
+            await bot.whisper(f"__Suggestions from {user.display_name}:__")
+            for suggestion in CTSuggestions.data[ctx.message.server.id][user.id]:
+                suggestion.msg = await bot.whisper(f"\"{suggestion.trigger}\" :arrow_right: \"{suggestion.response}\"")
 
-            number -= 1
-            if number == 0:
-                break
+                count -= 1
+                if count == 0:
+                    break
+        else:
+            await bot.say(f"No suggestions from {user.display_name} were found")
 
     else:
-        await bot.say("Well, enjoy reviewing the server's suggestions. I've got plenty for ya :wink:")
+        await bot.say("Sure thing")
         for memberID, suggestions in CTSuggestions.data[ctx.message.server.id].items():
-            toSay = [f"__Suggestions from {ctx.message.server.get_member(memberID).display_name}:__"]
-            for suggestion in suggestions:
-                toSay.append(f"\"{suggestion.trigger}\" :arrow_right: \"{suggestion.response}\"")
+            if len(suggestions) > 0:
+                await bot.whisper(f"__Suggestions from {ctx.message.server.get_member(memberID).display_name}:__")
+                for suggestion in suggestions:
+                    suggestion.msg = await bot.whisper(f"\"{suggestion.trigger}\" :arrow_right: \"{suggestion.response}\"")
 
-                number -= 1
-                if number == 0:
-                    break
-            if len(toSay) > 1:
-                await bot.whisper(toSay[0])
-                for msgText in toSay[1:]:
-                    pass
+                    count -= 1
+                    if count == 0:
+                        break
 
 @pcheck.devs()
 @bot.command()
 async def joinUs():
     await bot.whisper("Add me to your server with this: {}".format(discord.utils.oauth_url(bot.user.id)))
-    await bot.reply("DM'd 😉")
+    await bot.reply("DM'd :wink:")
 
 @pcheck.devs()
 @bot.command()
