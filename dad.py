@@ -285,7 +285,7 @@ async def aliasReviewComplete(ctx, user: discord.Member = None):
     if user and len(CTSuggestions.data[ctx.message.server.id][user.id]) > 0:
         for suggestion in CTSuggestions.data[ctx.message.server.id][user.id]:
             if suggestion.msg:
-                message = await bot.get_message(suggestion.msgChID, suggestion.msgID)
+                message = await bot.get_message(bot.get_channel(suggestion.msgChID), suggestion.msgID)
                 print(message.content)
                 for react in message.reactions:
                     print(react.id)
@@ -309,7 +309,7 @@ async def aliasReviewComplete(ctx, user: discord.Member = None):
                 print("Found user with suggestions")
                 for suggestion in suggestList:
                     if suggestion.msgID:
-                        message = await bot.get_message(suggestion.msgChID, suggestion.msgID)
+                        message = await bot.get_message(bot.get_channel(suggestion.msgChID), suggestion.msgID)
                         print(message.content)
                         for react in message.reactions:
                             print(react.id)
