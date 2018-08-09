@@ -1,0 +1,11 @@
+{
+  "token": "your-token-here",
+  "prefix": "dad ",
+  "tier1": "tier1RoleID",
+  "tier2": "tier2RoleID",
+  "tier3": "tier3RoleID",
+  "devs": "devRoleID",
+  "mods": "modRoleID",
+  "ownerID":"yourID",
+  "game": ""
+}
