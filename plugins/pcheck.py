@@ -5,7 +5,7 @@ import os
 
 parent = os.path.dirname(os.path.dirname(__file__))
 
-with open(parent + "\\config.json") as f:
+with open(parent + os.path.sep + "config.json") as f:
     configJSON = json.load(f)
     devs = [configJSON["devs"]]
     mods = [configJSON["mods"]] + devs
