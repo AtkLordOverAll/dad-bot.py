@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+import os
 import re
 import traceback
 
@@ -22,8 +23,8 @@ if config.data == {}:
     print("Please come back when you've set yourself up a config file")
     quit()
 
-CTResponses = Pyson("./data/cleanTextResponses")
-CTSuggestions = Pyckle("./data/CTSuggestions")
+CTResponses = Pyson(".{0}data{0}cleanTextResponses".format(os.path.sep))
+CTSuggestions = Pyckle(".{0}data{0}CTSuggestions".format(os.path.sep))
 
 CLEANER = re.compile(u"(<:[^\s]*>)|[~_*`]|[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF]", flags=re.UNICODE)
 BLURPLE = discord.Colour(0x7289da)
@@ -170,7 +171,7 @@ async def armyify(ctx, *, phrase = None):
     if phrase:
         phrase = phrase.upper()
         await bot.delete_message(ctx.message)
-        sub = Pyson("./data/phoneticAlphabet")
+        sub = Pyson(".{0}data{0}phoneticAlphabet".format(os.path.sep))
         output = ""
         newWord = True
 
