@@ -8,19 +8,19 @@ class Pyckle():
     If a pickle isn't found data will be None.
     """
 
-    def __init__(self, fileName):
+    def __init__(self, fileName, defaultData = None):
         if not fileName.endswith(".pickle"):
             fileName += ".pickle"
         if not os.path.isfile(fileName):
-            data = None
-            print("File not found, Pyckle blank")
+            data = defaultData
+            print("File not found, using default")
         else:
             try:
                 with open(fileName, "rb") as f:
                     data = pickle.load(f)
             except ValueError:
-                data = None
-                print("Data read failed, Pyckle blank")
+                print("Data read failed, using default")
+                data = defaultData    
         self.fileName = fileName
         self.data = data
 

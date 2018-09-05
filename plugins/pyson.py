@@ -13,13 +13,13 @@ class Pyson():
             fileName += ".json"
         if not os.path.isfile(fileName):
             data = defaultData
-            #print("File not found, empty dictionary being used")
+            print("File not found, using default)
         else:
             try:
                 with open(fileName) as f:
                     data = json.load(f)
             except ValueError:
-                #print("Data read failed, empty dictionary being used")
+                print("Data read failed, using default")
                 data = defaultData
         self.fileName = fileName
         self.data = data
